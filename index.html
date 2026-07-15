@@ -54,11 +54,11 @@ input,select,button{width:100%;padding:8px;border:1px solid #c6d3da;border-radiu
   <div><span class="dot" style="background:#3b8d63"></span>Stabilised</div>
   <div><span class="dot" style="background:#b77b20"></span>Stabilising / ramp-up</div>
 </div>
-<div class="google3d"><a href="#" id="google3d">Open Google Earth 3D</a></div><div id="locationStatus" style="position:absolute;z-index:1000;left:410px;top:82px;background:#fff;padding:7px 10px;border-radius:7px;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:11px">Locating exact addresses…</div>
+<div class="google3d"><a href="#" id="google3d">Open Google Earth 3D</a></div><div id="locationStatus" style="position:absolute;z-index:1000;left:410px;top:82px;background:#fff;padding:7px 10px;border-radius:7px;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:11px">Loading exact locations…</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const facilities=[{"name":"Benfica","metro":"Greater Lisbon","address":"R. Dom António Caetano de Sousa 15, 1500-222 Lisboa, Portugal","lat":38.7526,"lon":-9.1898,"opened":"Sep 2020","boxes":507,"gross_area":3824,"lettable_area":2282,"occupancy":94,"status":"Stabilised","avg_box":6.3,"avg_box_rent":138,"blended_rate":22.1,"small_mix":35,"medium_mix":41,"large_mix":24,"phases":"1st Stage operating; 2nd Stage expansion included in total capacity.","notes":"Largest Lisbon facility; close to Colombo shopping centre."},{"name":"Algés","metro":"Greater Lisbon","address":"R. Gen. Ferreira Martins 7, 1495-149 Algés, Portugal","lat":38.7028,"lon":-9.2295,"opened":"Jan 2023","boxes":115,"gross_area":787,"lettable_area":517,"occupancy":93,"status":"Stabilised","avg_box":4.5,"avg_box_rent":112,"blended_rate":25.0,"small_mix":57,"medium_mix":32,"large_mix":10,"phases":"Single operating stage.","notes":"Located near the Algés fire station."},{"name":"Campo de Ourique / Santa Isabel","metro":"Greater Lisbon","address":"R. Dom Dinis 59B, 1250-077 Lisboa, Portugal","lat":38.717,"lon":-9.163,"opened":"Aug 2023","boxes":173,"gross_area":958,"lettable_area":579,"occupancy":99,"status":"Stabilised","avg_box":3.3,"avg_box_rent":95,"blended_rate":28.3,"small_mix":68,"medium_mix":28,"large_mix":4,"phases":"Single operating stage.","notes":"Central Lisbon location near the Church of Santa Isabel."},{"name":"Palácio de Cristal (Rua Júlio Dinis)","metro":"Porto","address":"Rua de Júlio Dinis 81, 4050-323 Porto, Portugal","lat":41.1508,"lon":-8.6265,"opened":"Oct 2022","boxes":175,"gross_area":1819,"lettable_area":1369,"occupancy":85,"status":"Stabilising","avg_box":7.8,"avg_box_rent":134,"blended_rate":17.1,"small_mix":45,"medium_mix":14,"large_mix":41,"phases":"Single operating stage.","notes":"Largest average unit size and a more large-unit-oriented mix."},{"name":"Lapa (Rua do Paraíso)","metro":"Porto","address":"Rua do Paraíso 320, 4000-376 Porto, Portugal","lat":41.1585,"lon":-8.6105,"opened":"Dec 2022","boxes":172,"gross_area":1096,"lettable_area":612,"occupancy":89,"status":"Stabilising","avg_box":3.6,"avg_box_rent":86,"blended_rate":24.2,"small_mix":66,"medium_mix":27,"large_mix":6,"phases":"Single operating stage.","notes":"Located near Largo da Lapa."},{"name":"Setúbal","metro":"Setúbal","address":"R. Campos Rodrigues 43, 2910-452 Setúbal, Portugal","lat":38.5252,"lon":-8.8937,"opened":"Apr 2025","boxes":288,"gross_area":1579,"lettable_area":1164,"occupancy":84,"status":"Ramp-up","avg_box":4.1,"avg_box_rent":72,"blended_rate":17.8,"small_mix":53,"medium_mix":40,"large_mix":7,"phases":"1st Stage operating; 2nd Stage targeted to open at the end of 2026.","notes":"Newest facility and the portfolio's first location outside Lisbon and Porto."}];
+const facilities=[{"name":"Benfica","metro":"Greater Lisbon","address":"R. Dom António Caetano de Sousa 15, 1500-222 Lisboa, Portugal","lat":38.7527004,"lon":-9.1999203,"opened":"Sep 2020","boxes":507,"gross_area":3824,"lettable_area":2282,"occupancy":94,"status":"Stabilised","avg_box":6.3,"avg_box_rent":138,"blended_rate":22.1,"small_mix":35,"medium_mix":41,"large_mix":24,"phases":"1st Stage operating; 2nd Stage expansion included in total capacity.","notes":"Largest Lisbon facility; close to Colombo shopping centre."},{"name":"Algés","metro":"Greater Lisbon","address":"R. Gen. Ferreira Martins 7, 1495-149 Algés, Portugal","lat":38.7072231,"lon":-9.2244802,"opened":"Jan 2023","boxes":115,"gross_area":787,"lettable_area":517,"occupancy":93,"status":"Stabilised","avg_box":4.5,"avg_box_rent":112,"blended_rate":25.0,"small_mix":57,"medium_mix":32,"large_mix":10,"phases":"Single operating stage.","notes":"Located near the Algés fire station."},{"name":"Campo de Ourique / Santa Isabel","metro":"Greater Lisbon","address":"R. Dom Dinis 59B, 1250-077 Lisboa, Portugal","lat":38.718812,"lon":-9.1575199,"opened":"Aug 2023","boxes":173,"gross_area":958,"lettable_area":579,"occupancy":99,"status":"Stabilised","avg_box":3.3,"avg_box_rent":95,"blended_rate":28.3,"small_mix":68,"medium_mix":28,"large_mix":4,"phases":"Single operating stage.","notes":"Central Lisbon location near the Church of Santa Isabel."},{"name":"Palácio de Cristal (Rua Júlio Dinis)","metro":"Porto","address":"Rua de Júlio Dinis 81, 4050-323 Porto, Portugal","lat":41.1495497,"lon":-8.6259102,"opened":"Oct 2022","boxes":175,"gross_area":1819,"lettable_area":1369,"occupancy":85,"status":"Stabilising","avg_box":7.8,"avg_box_rent":134,"blended_rate":17.1,"small_mix":45,"medium_mix":14,"large_mix":41,"phases":"Single operating stage.","notes":"Largest average unit size and a more large-unit-oriented mix."},{"name":"Lapa (Rua do Paraíso)","metro":"Porto","address":"Rua do Paraíso 320, 4000-376 Porto, Portugal","lat":41.1571996,"lon":-8.6109548,"opened":"Dec 2022","boxes":172,"gross_area":1096,"lettable_area":612,"occupancy":89,"status":"Stabilising","avg_box":3.6,"avg_box_rent":86,"blended_rate":24.2,"small_mix":66,"medium_mix":27,"large_mix":6,"phases":"Single operating stage.","notes":"Located near Largo da Lapa."},{"name":"Setúbal","metro":"Setúbal","address":"R. Campos Rodrigues 43, 2910-452 Setúbal, Portugal","lat":38.5255857,"lon":-8.8800148,"opened":"Apr 2025","boxes":288,"gross_area":1579,"lettable_area":1164,"occupancy":84,"status":"Ramp-up","avg_box":4.1,"avg_box_rent":72,"blended_rate":17.8,"small_mix":53,"medium_mix":40,"large_mix":7,"phases":"1st Stage operating; 2nd Stage targeted to open at the end of 2026.","notes":"Newest facility and the portfolio's first location outside Lisbon and Porto."}];
 const map=L.map('map',{preferCanvas:true}).setView([39.45,-8.15],7);
 
 const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'});
@@ -75,7 +75,7 @@ const statusColor=x=>x.status==='Stabilised'?'#3b8d63':'#b77b20';
 const badge=x=>x.status==='Stabilised'?'green':'amber';
 
 function popup(x){
- const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.address);
+ const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.lat+','+x.lon);
  return `<div class="popup"><h3>${esc(x.name)}</h3><div class="address">${esc(x.address)}</div>
  <div class="popup-grid">
  <div class="popup-kpi"><b>${num(x.boxes)}</b><span>boxes</span></div>
@@ -97,43 +97,20 @@ function popup(x){
 }
 
 
-async function geocodeExactAddress(address){
- const url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=pt&q='+encodeURIComponent(address);
- const response=await fetch(url,{headers:{'Accept':'application/json'}});
- if(!response.ok) throw new Error('Geocoder HTTP '+response.status);
- const results=await response.json();
- return results.length?[parseFloat(results[0].lat),parseFloat(results[0].lon)]:null;
-}
 
-async function createExactMarkers(){
- let located=0;
- for(let i=0;i<facilities.length;i++){
-   const x=facilities[i];
-   let point=null;
-   try{
-     point=await geocodeExactAddress(x.address);
-   }catch(e){
-     console.warn('Geocoding failed for',x.address,e);
-   }
-   // Fall back to stored coordinates only if the exact address cannot be located.
-   if(!point) point=[x.lat,x.lon];
-   x.lat=point[0];
-   x.lon=point[1];
-
+function createExactMarkers(){
+ facilities.forEach((x,i)=>{
+   const point=[x.lat,x.lon];
    const m=L.circleMarker(point,{radius:9,weight:2,color:'#fff',fillColor:statusColor(x),fillOpacity:.95})
      .bindPopup(popup(x),{maxWidth:430});
    markers.set(i,m);
    m.addTo(map);
-   located++;
-   document.getElementById('locationStatus').textContent=`Located ${located} of ${facilities.length} exact addresses`;
-   await new Promise(resolve=>setTimeout(resolve,1100));
- }
- document.getElementById('locationStatus').textContent='All exact addresses located';
+ });
+ const statusEl=document.getElementById('locationStatus');
+ if(statusEl) statusEl.style.display='none';
  render();
  fit();
- setTimeout(()=>document.getElementById('locationStatus').style.display='none',2500);
 }
-
 
 function matches(x){
  const q=$('search').value.toLowerCase(),metro=$('metro').value,status=$('status').value;
