@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perfect Space Portfolio Explorer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#213b66;--teal:#1d8b88;--bg:#f3f6f7;--line:#d5e0e3;--muted:#667582;--green:#3b8d63;--amber:#b77b20}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;color:#1b2e4a;background:var(--bg)}
+header{height:72px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.brand h1{margin:0;font-size:23px}.brand small{opacity:.78}
+.layout{height:calc(100% - 72px);display:grid;grid-template-columns:395px 1fr}
+aside{background:#fff;border-right:1px solid var(--line);overflow:auto;padding:13px}
+#map{height:100%;width:100%}
+.summary{background:#edf6f5;border-left:4px solid var(--teal);border-radius:8px;padding:11px;margin-bottom:10px;font-size:12px;line-height:1.45}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.kpi{background:#fff;border:1px solid #dce8e8;border-radius:7px;padding:8px}.kpi b{display:block;font-size:15px}.kpi span{font-size:10px;color:var(--muted)}
+.controls{display:grid;grid-template-columns:1fr 130px;gap:7px;margin-bottom:8px}
+input,select,button{width:100%;padding:8px;border:1px solid #c6d3da;border-radius:7px;background:#fff}
+.facility{padding:10px 7px;border-bottom:1px solid #ebf0f2;cursor:pointer;border-left:3px solid transparent}.facility:hover{background:#f4f9f8}.facility.active{background:#edf6f5;border-left-color:var(--teal)}
+.facility strong{display:block;font-size:13px}.facility small{font-size:10px;color:var(--muted);line-height:1.4}
+.badge{display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;font-size:9px;margin-right:4px}.green{background:var(--green)}.amber{background:var(--amber)}.teal{background:var(--teal)}
+.popup{min-width:340px}.popup h3{margin:0 0 4px;font-size:15px}.popup .address{font-size:11px;color:var(--muted)}
+.popup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}.popup-kpi{background:#f1f6f7;border-radius:6px;padding:6px}.popup-kpi b{display:block;font-size:12px}.popup-kpi span{font-size:9px;color:var(--muted)}
+.popup table{width:100%;border-collapse:collapse;font-size:10px}.popup td{padding:4px;border-bottom:1px solid #e5edef}.popup td:last-child{text-align:right}
+.popup a{display:inline-block;background:var(--navy);color:#fff;text-decoration:none;padding:6px 8px;border-radius:5px;font-size:10px;margin-top:7px}
+.legend{position:absolute;z-index:1000;right:13px;bottom:15px;background:#fff;padding:9px 11px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.google3d{position:absolute;z-index:1000;right:13px;top:145px;background:#fff;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.google3d a{display:block;padding:8px 10px;text-decoration:none;color:var(--navy);font-weight:700;font-size:11px}
+@media(max-width:850px){header{height:64px}.layout{height:calc(100% - 64px);grid-template-columns:1fr;grid-template-rows:43vh 1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>Perfect Space</h1><small>Self-Storage Portfolio Explorer · Portugal</small></div>
+</header>
+<div class="layout">
+<aside>
+  <div class="summary" id="summary"></div>
+  <div class="controls">
+    <input id="search" placeholder="Search facility or address">
+    <select id="metro"><option value="">All regions</option></select>
+  </div>
+  <div class="controls">
+    <select id="status"><option value="">All operating statuses</option><option>Stabilised</option><option>Stabilising</option><option>Ramp-up</option></select>
+    <button id="fit">Fit selected</button>
+  </div>
+  <div id="list"></div>
+</aside>
+<div id="map"></div>
+</div>
+<div class="legend">
+  <div><span class="dot" style="background:#3b8d63"></span>Stabilised</div>
+  <div><span class="dot" style="background:#b77b20"></span>Stabilising / ramp-up</div>
+</div>
+<div class="google3d"><a href="#" id="google3d">Open Google Earth 3D</a></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const facilities=[{"name":"Benfica","metro":"Greater Lisbon","address":"Rua Dom António Caetano de Sousa, 15A, 1500-222 Lisboa, Portugal","lat":38.7526,"lon":-9.1898,"opened":"Sep 2020","boxes":507,"gross_area":3824,"lettable_area":2282,"occupancy":94,"status":"Stabilised","avg_box":6.3,"avg_box_rent":138,"blended_rate":22.1,"small_mix":35,"medium_mix":41,"large_mix":24,"phases":"1st Stage operating; 2nd Stage expansion included in total capacity.","notes":"Largest Lisbon facility; close to Colombo shopping centre."},{"name":"Algés","metro":"Greater Lisbon","address":"Rua General Ferreira Martins, 7, 1495-149 Algés, Portugal","lat":38.7028,"lon":-9.2295,"opened":"Jan 2023","boxes":115,"gross_area":787,"lettable_area":517,"occupancy":93,"status":"Stabilised","avg_box":4.5,"avg_box_rent":112,"blended_rate":25.0,"small_mix":57,"medium_mix":32,"large_mix":10,"phases":"Single operating stage.","notes":"Located near the Algés fire station."},{"name":"Campo de Ourique / Santa Isabel","metro":"Greater Lisbon","address":"Rua Dom Dinis, 59B, 1269-100 Lisboa, Portugal","lat":38.717,"lon":-9.163,"opened":"Aug 2023","boxes":173,"gross_area":958,"lettable_area":579,"occupancy":99,"status":"Stabilised","avg_box":3.3,"avg_box_rent":95,"blended_rate":28.3,"small_mix":68,"medium_mix":28,"large_mix":4,"phases":"Single operating stage.","notes":"Central Lisbon location near the Church of Santa Isabel."},{"name":"Porto – Júlio Dinis","metro":"Porto","address":"Rua de Júlio Dinis, 81, 4050-323 Porto, Portugal","lat":41.1508,"lon":-8.6265,"opened":"Oct 2022","boxes":175,"gross_area":1819,"lettable_area":1369,"occupancy":85,"status":"Stabilising","avg_box":7.8,"avg_box_rent":134,"blended_rate":17.1,"small_mix":45,"medium_mix":14,"large_mix":41,"phases":"Single operating stage.","notes":"Largest average unit size and a more large-unit-oriented mix."},{"name":"Porto – Lapa","metro":"Porto","address":"Rua do Paraíso, 320, 4000-376 Porto, Portugal","lat":41.1585,"lon":-8.6105,"opened":"Dec 2022","boxes":172,"gross_area":1096,"lettable_area":612,"occupancy":89,"status":"Stabilising","avg_box":3.6,"avg_box_rent":86,"blended_rate":24.2,"small_mix":66,"medium_mix":27,"large_mix":6,"phases":"Single operating stage.","notes":"Located near Largo da Lapa."},{"name":"Setúbal","metro":"Setúbal","address":"Rua Campos Rodrigues, Setúbal, Portugal","lat":38.5252,"lon":-8.8937,"opened":"Apr 2025","boxes":288,"gross_area":1579,"lettable_area":1164,"occupancy":84,"status":"Ramp-up","avg_box":4.1,"avg_box_rent":72,"blended_rate":17.8,"small_mix":53,"medium_mix":40,"large_mix":7,"phases":"1st Stage operating; 2nd Stage targeted to open at the end of 2026.","notes":"Newest facility and the portfolio's first location outside Lisbon and Porto."}];
+const map=L.map('map',{preferCanvas:true}).setView([39.45,-8.15],7);
+
+const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'});
+const aerial=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery &copy; Esri'});
+const light=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'&copy; OpenStreetMap contributors &copy; CARTO'});
+const dark=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'&copy; OpenStreetMap contributors &copy; CARTO'});
+street.addTo(map);
+L.control.layers({'Street map':street,'Aerial satellite':aerial,'Light map':light,'Dark map':dark},null,{position:'topright',collapsed:false}).addTo(map);
+
+const markers=new Map(),visible=new Set(),$=id=>document.getElementById(id);
+const num=v=>new Intl.NumberFormat('en-IE').format(v||0), euro=v=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const statusColor=x=>x.status==='Stabilised'?'#3b8d63':'#b77b20';
+const badge=x=>x.status==='Stabilised'?'green':'amber';
+
+function popup(x){
+ const g='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.address);
+ return `<div class="popup"><h3>${esc(x.name)}</h3><div class="address">${esc(x.address)}</div>
+ <div class="popup-grid">
+ <div class="popup-kpi"><b>${num(x.boxes)}</b><span>boxes</span></div>
+ <div class="popup-kpi"><b>${num(x.lettable_area)}</b><span>lettable sqm</span></div>
+ <div class="popup-kpi"><b>${x.occupancy}%</b><span>occupancy</span></div>
+ <div class="popup-kpi"><b>${euro(x.avg_box_rent)}</b><span>avg €/box/mo</span></div>
+ <div class="popup-kpi"><b>€${x.blended_rate.toFixed(1)}</b><span>€/sqm/month</span></div>
+ <div class="popup-kpi"><b>${x.opened}</b><span>opened</span></div>
+ </div>
+ <table>
+ <tr><td>Operating status</td><td>${esc(x.status)}</td></tr>
+ <tr><td>Gross area</td><td>${num(x.gross_area)} sqm</td></tr>
+ <tr><td>Average box size</td><td>${x.avg_box.toFixed(1)} sqm</td></tr>
+ <tr><td>Small / medium / large</td><td>${x.small_mix}% / ${x.medium_mix}% / ${x.large_mix}%</td></tr>
+ <tr><td>Phases</td><td>${esc(x.phases)}</td></tr>
+ </table>
+ <p style="font-size:10px">${esc(x.notes)}</p>
+ <a href="${g}" target="_blank" rel="noopener">Open exact address</a></div>`;
+}
+
+facilities.forEach((x,i)=>{
+ const m=L.circleMarker([x.lat,x.lon],{radius:9,weight:2,color:'#fff',fillColor:statusColor(x),fillOpacity:.95})
+  .bindPopup(popup(x),{maxWidth:430});
+ markers.set(i,m);m.addTo(map);
+});
+
+function matches(x){
+ const q=$('search').value.toLowerCase(),metro=$('metro').value,status=$('status').value;
+ const hay=(x.name+' '+x.address+' '+x.metro).toLowerCase();
+ return(!q||hay.includes(q))&&(!metro||x.metro===metro)&&(!status||x.status===status);
+}
+function render(){
+ $('list').innerHTML='';visible.clear();
+ let sites=0,boxes=0,gross=0,lettable=0,weightedOcc=0;
+ facilities.forEach((x,i)=>{
+   const m=markers.get(i);
+   if(matches(x)){
+     if(!map.hasLayer(m))m.addTo(map);
+     visible.add(i);sites++;boxes+=x.boxes;gross+=x.gross_area;lettable+=x.lettable_area;weightedOcc+=x.occupancy*x.lettable_area;
+     const el=document.createElement('div');el.className='facility';el.dataset.i=i;
+     el.innerHTML=`<strong>${esc(x.name)}</strong><small><span class="badge ${badge(x)}">${esc(x.status)}</span><span class="badge teal">${x.occupancy}% occupied</span><br>${esc(x.metro)} · ${num(x.boxes)} boxes · ${num(x.lettable_area)} sqm lettable</small>`;
+     el.onclick=()=>{document.querySelectorAll('.facility').forEach(e=>e.classList.remove('active'));el.classList.add('active');map.setView(m.getLatLng(),15);m.openPopup()};
+     $('list').appendChild(el);
+   }else if(map.hasLayer(m))map.removeLayer(m);
+ });
+ $('summary').innerHTML=`<b>${sites} facilities · ${num(boxes)} boxes</b>
+ <div class="kpis"><div class="kpi"><b>${num(gross)}</b><span>Gross area (sqm)</span></div><div class="kpi"><b>${num(lettable)}</b><span>Lettable area (sqm)</span></div><div class="kpi"><b>${lettable?(weightedOcc/lettable).toFixed(1)+'%':'–'}</b><span>Weighted occupancy</span></div><div class="kpi"><b>3</b><span>Operating regions</span></div></div>`;
+}
+function fit(){
+ const ms=[...visible].map(i=>markers.get(i));
+ if(ms.length)map.fitBounds(L.featureGroup(ms).getBounds().pad(.12),{maxZoom:13});
+}
+[...new Set(facilities.map(x=>x.metro))].sort().forEach(v=>$('metro').add(new Option(v,v)));
+$('search').oninput=render;$('metro').onchange=render;$('status').onchange=render;$('fit').onclick=fit;
+$('google3d').onclick=e=>{e.preventDefault();const c=map.getCenter(),z=map.getZoom(),alt=Math.max(500,Math.round(18000000/Math.pow(2,z)));window.open(`https://earth.google.com/web/@${c.lat.toFixed(6)},${c.lng.toFixed(6)},${alt}a,35d,35y,0h,0t,0r`,'_blank','noopener')};
+render();fit();
+</script>
+</body>
+</html>
